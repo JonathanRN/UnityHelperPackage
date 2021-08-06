@@ -104,5 +104,28 @@ namespace Jroynoel.Tests
 		{
             Assert.Throws<System.ArgumentException>(() => eventListener.SubscribeTo(eventName, null));
 		}
+
+        [Test]
+        [TestCase("Test")]
+        [TestCase("Test1")]
+        [TestCase("1234")]
+        [TestCase("fgdfgdfgf")]
+        [TestCase(" ")]
+        public void UnsubscribeFrom(string eventName)
+        {
+            bool eventWasCalled = false;
+
+            eventListener.SubscribeTo(eventName, (obj) =>
+            {
+                eventWasCalled = true;
+            });
+
+            eventListener.UnsubscribeFrom(eventName);
+
+            // Call the event
+            eventListener.Emit(eventName, null);
+
+            Assert.IsFalse(eventWasCalled);
+        }
     }
 }

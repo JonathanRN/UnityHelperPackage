@@ -41,6 +41,20 @@ namespace Jroynoel
 			}
 		}
 
+		/// <summary>
+		/// Unsubscribe from an event specified
+		/// </summary>
+		/// <param name="eventName">The event name to unsubscribe from</param>
+		public void UnsubscribeFrom(string eventName)
+		{
+			if (string.IsNullOrEmpty(eventName))
+			{
+				throw new ArgumentException($"Invalid Event Name \"{eventName}\".");
+			}
+
+			subscribedEvents.RemoveWhere(x => x.EventName.Equals(eventName));
+		}
+
 		protected virtual void OnDestroy()
 		{
 			EventManager.Instance.UnregisterListener(this);
