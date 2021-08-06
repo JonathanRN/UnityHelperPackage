@@ -127,5 +127,56 @@ namespace Jroynoel.Tests
 
             Assert.IsFalse(eventWasCalled);
         }
+
+        [Test]
+        [TestCase("test")]
+        [TestCase('c')]
+        [TestCase(1)]
+        [TestCase(32.5652f)]
+        [TestCase(true)]
+        public void GetLastEvent_SyncLastEvent(object arg)
+		{
+            bool eventWasCalled = false;
+            object received = null;
+            eventListener.SyncLastEvent = true;
+
+            // Emit the event before subscribing
+            eventListener.Emit("test", arg);
+
+            // Should still trigger with Sync
+            eventListener.SubscribeTo("test", (obj) =>
+            {
+                eventWasCalled = true;
+                received = obj;
+            });
+
+            Assert.IsTrue(eventWasCalled);
+            Assert.AreEqual(arg, received);
+        }
+
+        [Test]
+        [TestCase("test")]
+        [TestCase('c')]
+        [TestCase(1)]
+        [TestCase(32.5652f)]
+        [TestCase(true)]
+        public void GetLastEvent_Unsynced(object arg)
+        {
+            bool eventWasCalled = false;
+            object received = null;
+            eventListener.SyncLastEvent = false;
+
+            // Emit the event before subscribing
+            eventListener.Emit("test");
+
+            eventListener.SubscribeTo("test", (obj) =>
+            {
+                eventWasCalled = true;
+                received = obj;
+            });
+
+            Assert.IsFalse(eventWasCalled);
+            Assert.IsNull(received);
+        }
     }
 }

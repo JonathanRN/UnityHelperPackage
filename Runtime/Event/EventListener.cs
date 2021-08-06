@@ -9,6 +9,11 @@ namespace Jroynoel
 		private readonly HashSet<Event> subscribedEvents = new HashSet<Event>();
 		private bool isRegistered;
 
+		/// <summary>
+		/// Automatically retrieve the last event sent upon subscription?
+		/// </summary> 
+		public bool SyncLastEvent { get; set; }
+
 		public HashSet<Event> GetSubscribedEvents => subscribedEvents;
 
 		/// <summary>
@@ -33,11 +38,14 @@ namespace Jroynoel
 				throw new ArgumentException($"Invalid Event Name \"{eventName}\".");
 			}
 
-			subscribedEvents.Add(new Event(eventName, action));
-			if (!isRegistered)
+			Register();
+
+			Event ev = new Event(eventName, action);
+			subscribedEvents.Add(ev);
+			if (SyncLastEvent)
 			{
-				EventManager.Instance.RegisterListener(this);
-				isRegistered = true;
+				var arg = EventManager.Instance.GetLastEvent(eventName);
+				ev.Action?.Invoke(arg);
 			}
 		}
 
@@ -58,6 +66,15 @@ namespace Jroynoel
 		protected virtual void OnDestroy()
 		{
 			EventManager.Instance.UnregisterListener(this);
+		}
+
+		private void Register()
+		{
+			if (!isRegistered)
+			{
+				EventManager.Instance.RegisterListener(this);
+				isRegistered = true;
+			}
 		}
 	}
 }
