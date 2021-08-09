@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace Jroynoel
 {
@@ -11,11 +12,13 @@ namespace Jroynoel
 		{
 			foreach (var listener in eventListeners)
 			{
-				foreach (var ev in listener.GetSubscribedEvents)
+				// Caching the events beforehand in case the action is subscribing to another event
+				var events = listener.GetSubscribedEvents.ToArray();
+				for (int i = 0; i < events.Length; i++)
 				{
-					if (ev.EventName.Equals(eventName))
+					if (events[i].EventName.Equals(eventName))
 					{
-						ev.Action?.Invoke(arg);
+						events[i].Action?.Invoke(arg);
 					}
 				}
 			}

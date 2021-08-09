@@ -98,6 +98,26 @@ namespace Jroynoel.Tests
         }
 
         [Test]
+        public void SubscribeTo_SubscribeAgain()
+		{
+            bool eventWasCalled = false;
+
+            eventListener.SubscribeTo("test1", (t1) =>
+            {
+                // Subscribe again in the 
+                eventListener.SubscribeTo("test2", (t2) =>
+                {
+                    eventWasCalled = true;
+                });
+            });
+
+            eventListener.Emit("test1");
+            eventListener.Emit("test2");
+
+            Assert.IsTrue(eventWasCalled);
+		}
+
+        [Test]
         [TestCase("")]
         [TestCase(null)]
         public void SubscribeTo_InvalidEventName(string eventName)
