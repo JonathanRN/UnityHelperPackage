@@ -10,15 +10,16 @@ namespace Jroynoel
 
 		public void EmitEvent(string eventName, object arg = null)
 		{
-			foreach (var listener in eventListeners)
+			var listeners = eventListeners.ToArray();
+			for (int i = 0; i < listeners.Length; i++)
 			{
 				// Caching the events beforehand in case the action is subscribing to another event
-				var events = listener.GetSubscribedEvents.ToArray();
-				for (int i = 0; i < events.Length; i++)
+				var events = listeners[i].GetSubscribedEvents.ToArray();
+				for (int j = 0; j < events.Length; j++)
 				{
-					if (events[i].EventName.Equals(eventName))
+					if (events[j].EventName.Equals(eventName))
 					{
-						events[i].Action?.Invoke(arg);
+						events[j].Action?.Invoke(arg);
 					}
 				}
 			}
