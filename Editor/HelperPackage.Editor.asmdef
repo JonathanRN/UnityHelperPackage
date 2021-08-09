@@ -1,7 +1,9 @@
 {
-    "name": "HelperPackage",
+    "name": "HelperPackage.Editor",
     "references": [],
-    "includePlatforms": [],
+    "includePlatforms": [
+        "Editor"
+    ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
