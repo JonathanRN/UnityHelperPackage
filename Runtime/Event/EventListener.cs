@@ -44,8 +44,10 @@ namespace Jroynoel
 			subscribedEvents.Add(ev);
 			if (SyncLastEvent)
 			{
-				var arg = EventManager.Instance.GetLastEvent(eventName);
-				ev.Action?.Invoke(arg);
+				if (EventManager.Instance.TryGetLastEvent(eventName, out object arg))
+				{
+					ev.Action?.Invoke(arg);
+				}
 			}
 		}
 

@@ -21,6 +21,7 @@ namespace Jroynoel.Tests
 		{
 			if (eventListener != null)
 			{
+                Object.DestroyImmediate(Object.FindObjectOfType<EventManager>());
                 Object.DestroyImmediate(eventListener.gameObject);
 			}
 		}
@@ -187,7 +188,7 @@ namespace Jroynoel.Tests
             eventListener.SyncLastEvent = false;
 
             // Emit the event before subscribing
-            eventListener.Emit("test");
+            eventListener.Emit("test", arg);
 
             eventListener.SubscribeTo("test", (obj) =>
             {
@@ -197,6 +198,20 @@ namespace Jroynoel.Tests
 
             Assert.IsFalse(eventWasCalled);
             Assert.IsNull(received);
+        }
+
+        [Test]
+        public void GetLastEvent_SyncNoEmit()
+		{
+            bool eventWasCalled = false;
+            eventListener.SyncLastEvent = true;
+
+            eventListener.SubscribeTo("syncnoemit", (arg) =>
+            {
+                eventWasCalled = true;
+            });
+
+            Assert.IsFalse(eventWasCalled);
         }
     }
 }

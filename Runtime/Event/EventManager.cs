@@ -25,15 +25,17 @@ namespace Jroynoel
 			lastEvents[eventName] = arg;
 		}
 
-		public object GetLastEvent(string eventName)
+		public bool TryGetLastEvent(string eventName, out object arg)
 		{
+			arg = null;
 			try
 			{
-				return lastEvents[eventName];
+				arg = lastEvents[eventName];
+				return true;
 			}
 			catch (System.Exception)
 			{
-				return null;
+				return false;
 			}
 		}
 
