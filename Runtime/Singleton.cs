@@ -11,16 +11,21 @@ namespace Jroynoel
 
 		private static T CreateSingleton()
 		{
-			var ownerObject = new GameObject(typeof(T).Name);
-			var instance = ownerObject.AddComponent<T>();
+			var instance = FindObjectOfType<T>();
+			if (instance == null)
+			{
+				instance = new GameObject(typeof(T).Name).AddComponent<T>();
+			}
+			
 			try
 			{
-				DontDestroyOnLoad(ownerObject);
+				DontDestroyOnLoad(instance.gameObject);
 			}
 			catch (InvalidOperationException)
 			{
 				// Catch specific exception so test runner passes
 			}
+
 			return instance;
 		}
 	}
