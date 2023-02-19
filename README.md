@@ -58,55 +58,98 @@ A unique event system was created for easier management of communication between
 
 ### Usage
 
-To register (subscribe) to an event, first inherit from the `EventListener` class :
+To register (subscribe) to an event, simply call `SubscribeTo` from any object (even primitives). Specify the name of the event (string) and the callback when said event is called (Action\<object, object\>).
 
 ```csharp
-public class Example : EventListener
+public class Example : MonoBehaviour
 {
-    // Code...
-}
-```
-
-Then subscribe to an event using the `SubscribeTo` method. Specify the name of the event (string) and the callback when said event is called (Action\<object\>).
-
-```csharp
-public class Example : EventListener
-{
-    private void Start()
+    private void Awake()
     {
-        SubscribeTo("yourEventName", (obj) =>
+        // This works
+        this.SubscribeTo("yourEventName", (sender, args) =>
         {
-            // Do something with the event and the argument...
+            // Do something with the event
         });
 
-        // It is also possible to unsubscribe from events.
-        UnsubscribeFrom("yourEventName");
+        // This also works
+        int myInt = 3;
+        myInt.SubscribeTo("yourEventName", (sender, args) =>
+        {
+            // Do something with the event
+        });
     }
 }
 ```
 
-To call (emit) an event, simply call `Emit` with the event name, and an optional parameter.
+To unsubscribe from an event, call `UnsubscribeFrom` from the same object.
 
 ```csharp
+public class Example : MonoBehaviour
 {
-    // Since the 2nd parameter is an object, it can take any type or objects
-    Emit("yourEventName"); // 2nd parameter is null by default
-    Emit("yourEventName", 42);
-    Emit("yourEventName", false);
+    private void Awake()
+    {
+        this.SubscribeTo("yourEventName", (sender, args) =>
+        {
+            // Do something with the event
+        });
 
-    // It is also possible to emit events directly from the EventManager
-    EventManager.Instance.EmitEvent("yourEventName", ...);
+        int myInt = 3;
+        // This will throw an exception since `myInt` never subscribed to the event
+        // myInt.UnsubscribeFrom("yourEventName");
+    }
 
-    // Code...
+    private void OnDestroy()
+    {
+        this.UnsubscribeFrom("yourEventName");
+    }
 }
 ```
 
-In cases when a component subscribe later to an event, it is possible to get the latest event for a specified event name upon subscribing to it. To do so, set the following flag :
+To call (emit) an event, call `Emit` with the event name, and an optional parameter.
 
 ```csharp
 {
-    SyncLastEvent = true;
-    // Code...
+    // Anywhere else in the code
+    this.Emit("yourEventName");
+
+    // Another example
+    // Since emitting is possible from any object, this makes it easier to pass in arguments
+    this.SubscribeTo("yourEventName", (sender, args) =>
+    {
+        // `sender` here will be the integer itself!
+        // int received = (int)sender;
+        // received = 3
+    });
+
+    int myInt = 3;
+    myInt.Emit("yourEventName");
+}
+```
+
+You can even wait for an event as a Unity coroutine. Simply use `WaitForEvent` with an event name.
+
+```csharp
+public class CoroutineTest : MonoBehaviour
+{
+    private IEnumerator Start()
+    {
+        // Start the wait coroutine
+        StartCoroutine(EventCoroutine());
+
+        // Wait for 2 seconds to simulate something else going on
+        yield return new WaitForSeconds(2);
+
+        this.Emit("event");
+    }
+
+    private IEnumerator EventCoroutine()
+    {
+        // This code runs as soon as the coroutine is started
+        Debug.Log("Before");
+        yield return this.WaitForEvent("event");
+        // This gets called as soon as the event is finally received
+        Debug.Log("After");
+    }
 }
 ```
 

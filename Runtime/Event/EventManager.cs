@@ -1,53 +1,65 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using ObjectEventList = System.Collections.Generic.List<(object obj, System.Action<object, object> action)>;
 
 namespace Jroynoel
 {
-	public class EventManager : Singleton<EventManager>
+	public static class EventManager
 	{
-		public HashSet<EventListener> eventListeners = new HashSet<EventListener>();
-		private readonly Dictionary<string, object> lastEvents = new Dictionary<string, object>();
+		private static readonly Dictionary<string, ObjectEventList> dict = new Dictionary<string, ObjectEventList>();
 
-		public void EmitEvent(string eventName, object arg = null)
+		public static void SubscribeTo(this object obj, string eventName, Action<object, object> handler)
 		{
-			var listeners = eventListeners.ToArray();
-			for (int i = 0; i < listeners.Length; i++)
+			if (!dict.ContainsKey(eventName))
 			{
-				// Caching the events beforehand in case the action is subscribing to another event
-				var events = listeners[i].GetSubscribedEvents.ToArray();
-				for (int j = 0; j < events.Length; j++)
+				dict.Add(eventName, new ObjectEventList());
+				UnityEngine.Debug.Log($"[EventManager] Added new event \"{eventName}\".");
+			}
+			dict[eventName].Add((obj, handler));
+		}
+
+		public static void UnsubscribeFrom(this object obj, string eventName)
+		{
+			if (dict.TryGetValue(eventName, out ObjectEventList observers))
+			{
+				observers.RemoveAll(x => x.obj.Equals(obj));
+
+				if (observers.Count == 0)
 				{
-					if (events[j].EventName.Equals(eventName))
-					{
-						events[j].Action?.Invoke(arg);
-					}
+					dict.Remove(eventName);
+					UnityEngine.Debug.Log($"[EventManager] Removed unsubscribed event \"{eventName}\".");
 				}
 			}
-			lastEvents[eventName] = arg;
-		}
-
-		public bool TryGetLastEvent(string eventName, out object arg)
-		{
-			arg = null;
-			try
+			else
 			{
-				arg = lastEvents[eventName];
-				return true;
-			}
-			catch (System.Exception)
-			{
-				return false;
+				throw new NullReferenceException($"Couldn't remove observer from {obj.GetType().Name}. Event \"{eventName}\" not found.");
 			}
 		}
 
-		public void RegisterListener(EventListener listener)
+		public static void Emit(this object obj, string eventName, object args = null)
 		{
-			eventListeners.Add(listener);
+			if (!dict.ContainsKey(eventName))
+			{
+				throw new NullReferenceException($"Couldn't emit from {obj.GetType().Name}. Event \"{eventName}\" not found.");
+			}
+
+			foreach (var observer in dict[eventName])
+			{
+				observer.action?.Invoke(obj, args);
+			}
 		}
 
-		public void UnregisterListener(EventListener listener)
+		public static IEnumerator WaitForEvent(this object obj, string eventName)
 		{
-			eventListeners.Remove(listener);
+			bool done = false;
+			obj.SubscribeTo(eventName, (sender, args) =>
+			{
+				done = true;
+			});
+
+			yield return new UnityEngine.WaitUntil(() => done);
+			obj.UnsubscribeFrom(eventName);
 		}
 	}
 }
